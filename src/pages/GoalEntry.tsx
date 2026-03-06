@@ -12,6 +12,7 @@ export default function GoalEntry() {
 
   const [form, setForm] = useState({
     assignedTo: '',
+    category: '',
     title: '',
     description: '',
     gamePlan: '',
@@ -55,6 +56,19 @@ export default function GoalEntry() {
             {directReports.map(emp => (
               <option key={emp.id} value={emp.id}>{emp.name}</option>
             ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-1.5">Goal Category *</label>
+          <select
+            value={form.category}
+            onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+            className={inputClasses}
+          >
+            <option value="">Select category...</option>
+            <option value="call_coaching">Call Coaching</option>
+            <option value="pipe_management">Pipe Management</option>
           </select>
         </div>
 
