@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, UserPlus } from "lucide-react";
 import { getDirectReports, getActiveGoals, getUserById } from "@/data/mockData";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const currentUserId = 't1';
 
@@ -10,9 +12,15 @@ export default function EmployeeList() {
 
   return (
     <div className="space-y-6">
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-3xl font-heading font-bold text-foreground">My Team</h1>
-        <p className="text-muted-foreground mt-1">Click on an employee to view their profile</p>
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-heading font-bold text-foreground">My Team</h1>
+          <p className="text-muted-foreground mt-1">Click on an employee to view their profile</p>
+        </div>
+        <Button onClick={() => toast.info("Add employee functionality coming soon!")} className="gap-2">
+          <UserPlus className="w-4 h-4" />
+          Add Employee
+        </Button>
       </motion.div>
 
       <div className="grid gap-3">
