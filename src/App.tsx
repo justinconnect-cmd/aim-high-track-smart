@@ -36,8 +36,8 @@ const App = () => (
             </main>
             <MobileNav />
           </div>
-        </AuthProvider>
-      </BrowserRouter>
+        </BrowserRouter>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
