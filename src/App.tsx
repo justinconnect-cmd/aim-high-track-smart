@@ -20,8 +20,8 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
+      <AuthProvider>
+        <BrowserRouter>
           <div className="flex min-h-screen">
             <AppSidebar />
             <main className="flex-1 p-6 md:p-8 pb-20 md:pb-8 overflow-auto">
@@ -36,8 +36,8 @@ const App = () => (
             </main>
             <MobileNav />
           </div>
-        </AuthProvider>
-      </BrowserRouter>
+        </BrowserRouter>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
