@@ -2,31 +2,37 @@ import { motion } from "framer-motion";
 import { Users, Target, AlertTriangle, CheckCircle2 } from "lucide-react";
 import StatCard from "@/components/StatCard";
 import GoalStatusBadge from "@/components/GoalStatusBadge";
-import { getDirectReports, getActiveGoals, goals, getUserById } from "@/data/mockData";
+import { getVisibleEmployees, goals, getUserById } from "@/data/mockData";
 import { Link } from "react-router-dom";
-
-// Simulating logged-in user as Team Lead Maya (t1)
-const currentUserId = 't1';
+import { useAuth } from "@/context/AuthContext";
+import AEDashboard from "./AEDashboard";
 
 export default function Dashboard() {
-  const directReports = getDirectReports(currentUserId);
-  const allGoals = directReports.flatMap(e => goals.filter(g => g.assignedTo === e.id));
+  const { currentUser } = useAuth();
+
+  // AEs get their own dashboard
+  if (currentUser.role === 'employee') {
+    return <AEDashboard />;
+  }
+
+  const visibleEmployees = getVisibleEmployees(currentUser.id);
+  const allGoals = visibleEmployees.flatMap(e => goals.filter(g => g.assignedTo === e.id));
   const activeGoals = allGoals.filter(g => g.status === 'active');
   const overdueGoals = allGoals.filter(g => g.status === 'overdue');
   const completedGoals = allGoals.filter(g => g.status === 'completed');
 
+  const roleLabel = currentUser.role === 'group_lead' ? 'Group Overview' :
+    `Team ${currentUser.teamName} · Smart Group Overview`;
+
   return (
     <div className="space-y-8">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-3xl font-heading font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Team Alpha · Smart Group Overview</p>
+        <p className="text-muted-foreground mt-1">{roleLabel}</p>
       </motion.div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Team Members" value={directReports.length} icon={Users} />
+        <StatCard title="AEs" value={visibleEmployees.length} icon={Users} />
         <StatCard title="Active Goals" value={activeGoals.length} icon={Target} variant="accent" />
         <StatCard title="Overdue" value={overdueGoals.length} icon={AlertTriangle} variant="warning" />
         <StatCard title="Completed" value={completedGoals.length} icon={CheckCircle2} variant="success" />

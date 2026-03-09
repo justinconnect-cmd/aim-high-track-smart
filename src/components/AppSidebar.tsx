@@ -1,16 +1,40 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Table2, UserCircle, PlusCircle, Settings } from "lucide-react";
+import { LayoutDashboard, Table2, UserCircle, PlusCircle } from "lucide-react";
 import { motion } from "framer-motion";
-
-const navItems = [
-  { to: "/", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/board", icon: Table2, label: "Table Board" },
-  { to: "/employees", icon: UserCircle, label: "Employees" },
-  { to: "/goals/new", icon: PlusCircle, label: "New Goal" },
-];
+import { useAuth } from "@/context/AuthContext";
+import { users } from "@/data/mockData";
 
 export default function AppSidebar() {
   const location = useLocation();
+  const { currentUser, setCurrentUserId } = useAuth();
+  const isEmployee = currentUser.role === 'employee';
+
+  // Role labels
+  const roleLabel = {
+    top_level: 'Top Level',
+    group_lead: 'Group Lead',
+    team_lead: 'Team Lead',
+    employee: 'AE',
+  }[currentUser.role];
+
+  // Nav items based on role
+  const navItems = isEmployee
+    ? [
+        { to: "/", icon: LayoutDashboard, label: "My Goals" },
+      ]
+    : [
+        { to: "/", icon: LayoutDashboard, label: "Dashboard" },
+        { to: "/board", icon: Table2, label: "Table Board" },
+        { to: "/employees", icon: UserCircle, label: "Employees" },
+        { to: "/goals/new", icon: PlusCircle, label: "New Goal" },
+      ];
+
+  // Demo role switcher options
+  const switchableUsers = [
+    { id: 'g1', label: 'Sarah (Group Lead)' },
+    { id: 't1', label: 'Maya (Team Lead)' },
+    { id: 'e1', label: 'Tal (AE)' },
+  ];
 
   return (
     <aside className="hidden md:flex flex-col w-64 bg-sidebar text-sidebar-foreground min-h-screen">
@@ -46,10 +70,24 @@ export default function AppSidebar() {
         })}
       </nav>
 
+      {/* Role switcher for demo */}
+      <div className="px-3 mb-2">
+        <label className="block text-xs text-sidebar-foreground/50 mb-1 px-1">Switch View</label>
+        <select
+          value={currentUser.id}
+          onChange={e => setCurrentUserId(e.target.value)}
+          className="w-full rounded-lg border border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground text-sm px-3 py-2 focus:outline-none"
+        >
+          {switchableUsers.map(u => (
+            <option key={u.id} value={u.id}>{u.label}</option>
+          ))}
+        </select>
+      </div>
+
       <div className="p-4 mx-3 mb-4 rounded-lg bg-sidebar-accent">
         <p className="text-xs text-sidebar-foreground/60">Logged in as</p>
-        <p className="text-sm font-semibold text-sidebar-accent-foreground">Maya Ben-Ari</p>
-        <p className="text-xs text-sidebar-foreground/50">Team Lead · Alpha</p>
+        <p className="text-sm font-semibold text-sidebar-accent-foreground">{currentUser.name}</p>
+        <p className="text-xs text-sidebar-foreground/50">{roleLabel}{currentUser.teamName ? ` · ${currentUser.teamName}` : ''}</p>
       </div>
     </aside>
   );
