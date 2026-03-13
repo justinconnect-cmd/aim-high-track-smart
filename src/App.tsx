@@ -7,7 +7,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import AppSidebar from "@/components/AppSidebar";
 import MobileNav from "@/components/MobileNav";
 import Dashboard from "@/pages/Dashboard";
-import TableBoard from "@/pages/TableBoard";
+
 import EmployeeList from "@/pages/EmployeeList";
 import EmployeeProfile from "@/pages/EmployeeProfile";
 import GoalEntry from "@/pages/GoalEntry";
