@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
+import connecteamLogo from "@/assets/connecteam-logo.png";
 import { LayoutDashboard, Table2, UserCircle, PlusCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
@@ -39,9 +40,7 @@ export default function AppSidebar() {
   return (
     <aside className="hidden md:flex flex-col w-64 bg-sidebar text-sidebar-foreground min-h-screen">
       <div className="p-6">
-        <h1 className="font-heading text-xl font-bold text-sidebar-primary-foreground tracking-tight">
-          <span className="text-sidebar-primary">Goal</span>Track
-        </h1>
+        <img src={connecteamLogo} alt="Connecteam" className="h-7 w-auto" />
         <p className="text-xs text-sidebar-foreground/60 mt-1">Team Performance Hub</p>
       </div>
 
