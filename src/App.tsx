@@ -27,7 +27,7 @@ const App = () => (
             <main className="flex-1 p-6 md:p-8 pb-20 md:pb-8 overflow-auto">
               <Routes>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/board" element={<TableBoard />} />
+                
                 <Route path="/employees" element={<EmployeeList />} />
                 <Route path="/employees/:id" element={<EmployeeProfile />} />
                 <Route path="/goals/new" element={<GoalEntry />} />
