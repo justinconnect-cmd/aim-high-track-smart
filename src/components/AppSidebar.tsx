@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
+import connecteamLogo from "@/assets/connecteam-logo.png";
 import { LayoutDashboard, Table2, UserCircle, PlusCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
