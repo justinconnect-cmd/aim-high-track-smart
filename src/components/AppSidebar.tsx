@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import connecteamLogo from "@/assets/connecteam-logo.png";
-import { LayoutDashboard, Table2, UserCircle, PlusCircle } from "lucide-react";
+import { LayoutDashboard, UserCircle, PlusCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { users } from "@/data/mockData";
@@ -25,7 +25,6 @@ export default function AppSidebar() {
       ]
     : [
         { to: "/", icon: LayoutDashboard, label: "Dashboard" },
-        { to: "/board", icon: Table2, label: "Table Board" },
         { to: "/employees", icon: UserCircle, label: "Employees" },
         { to: "/goals/new", icon: PlusCircle, label: "New Goal" },
       ];

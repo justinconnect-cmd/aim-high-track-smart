@@ -1,9 +1,8 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Table2, UserCircle, PlusCircle } from "lucide-react";
+import { LayoutDashboard, UserCircle, PlusCircle } from "lucide-react";
 
 const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Home" },
-  { to: "/board", icon: Table2, label: "Board" },
   { to: "/employees", icon: UserCircle, label: "Team" },
   { to: "/goals/new", icon: PlusCircle, label: "New" },
 ];
