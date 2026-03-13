@@ -43,6 +43,8 @@
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
+    --info: 200 80% 55%;
+    --info-foreground: 0 0% 100%;
 
     --sidebar-background: 220 60% 16%;
     --sidebar-foreground: 220 20% 85%;
