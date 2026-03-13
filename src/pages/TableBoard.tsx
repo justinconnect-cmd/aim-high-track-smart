@@ -137,7 +137,11 @@ export default function TableBoard() {
                         <span className="text-muted-foreground italic">No active goal</span>
                       )}
                     </td>
-                    <td className="p-4 text-muted-foreground">{currentGoal?.deadline ?? '—'}</td>
+                    <td className={`p-4 font-medium ${
+                      currentGoal?.status === 'overdue' ? 'text-destructive' :
+                      currentGoal?.status === 'completed' ? 'text-success' :
+                      'text-muted-foreground'
+                    }`}>{currentGoal?.deadline ?? '—'}</td>
                     <td className="p-4">{currentGoal ? <GoalStatusBadge status={currentGoal.status} /> : '—'}</td>
                     <td className="p-4">{currentGoal?.completedByEmployee ? '✅' : '⬜'}</td>
                     <td className="p-4">{currentGoal?.completedByLead ? '✅' : '⬜'}</td>
