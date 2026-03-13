@@ -41,7 +41,7 @@ export default function AppSidebar() {
     <aside className="hidden md:flex flex-col w-64 bg-sidebar text-sidebar-foreground min-h-screen">
       <div className="p-6">
         <img src={connecteamLogo} alt="Connecteam" className="h-7 w-auto" />
-        <p className="text-xs text-sidebar-foreground/60 mt-1">Team Performance Hub</p>
+        <p className="text-xs text-sidebar-foreground/60 mt-1">Coaching Platform</p>
       </div>
 
       <nav className="flex-1 px-3 space-y-1">
