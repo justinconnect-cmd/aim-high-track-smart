@@ -20,7 +20,7 @@ export default function AEDashboard() {
       </motion.div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <StatCard title="Active Goals" value={activeGoals.length} icon={Target} variant="accent" />
+        <StatCard title="Active Goals" value={activeGoals.length} icon={Target} variant="info" />
         <StatCard title="Overdue" value={overdueGoals.length} icon={AlertTriangle} variant="warning" />
         <StatCard title="Completed" value={completedGoals.length} icon={CheckCircle2} variant="success" />
       </div>
