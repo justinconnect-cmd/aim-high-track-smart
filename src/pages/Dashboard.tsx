@@ -105,7 +105,7 @@ export default function Dashboard() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard title="AEs" value={visibleEmployees.length} icon={Users} />
-                <StatCard title="Active Goals" value={activeGoals.length} icon={Target} variant="accent" />
+                <StatCard title="Active Goals" value={activeGoals.length} icon={Target} variant="info" />
                 <StatCard title="Overdue" value={overdueGoals.length} icon={AlertTriangle} variant="warning" />
                 <StatCard title="Completed" value={completedGoals.length} icon={CheckCircle2} variant="success" />
               </div>
