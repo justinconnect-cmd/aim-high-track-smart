@@ -127,6 +127,7 @@ function GoalTable({ employees, isGroupLead, teamLeads, statusFilter, setStatusF
 }
 
 function TeamDashboard({ teamLead, employees, isGroupLead, teamLeads }: { teamLead?: User; employees: User[]; isGroupLead: boolean; teamLeads: User[] }) {
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'overdue' | 'completed'>('all');
   const teamGoals = employees.flatMap(e => goals.filter(g => g.assignedTo === e.id));
   const activeGoals = teamGoals.filter(g => g.status === 'active');
   const overdueGoals = teamGoals.filter(g => g.status === 'overdue');
@@ -135,12 +136,20 @@ function TeamDashboard({ teamLead, employees, isGroupLead, teamLeads }: { teamLe
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="AEs" value={employees.length} icon={Users} />
-        <StatCard title="Active Goals" value={activeGoals.length} icon={Target} variant="info" />
-        <StatCard title="Overdue" value={overdueGoals.length} icon={AlertTriangle} variant="warning" />
-        <StatCard title="Completed" value={completedGoals.length} icon={CheckCircle2} variant="success" />
+        <div className="cursor-pointer" onClick={() => setStatusFilter('all')}>
+          <StatCard title="AEs" value={employees.length} icon={Users} className={statusFilter === 'all' ? 'ring-2 ring-primary' : ''} />
+        </div>
+        <div className="cursor-pointer" onClick={() => setStatusFilter('active')}>
+          <StatCard title="Active Goals" value={activeGoals.length} icon={Target} variant="info" className={statusFilter === 'active' ? 'ring-2 ring-info' : ''} />
+        </div>
+        <div className="cursor-pointer" onClick={() => setStatusFilter('overdue')}>
+          <StatCard title="Overdue" value={overdueGoals.length} icon={AlertTriangle} variant="warning" className={statusFilter === 'overdue' ? 'ring-2 ring-destructive' : ''} />
+        </div>
+        <div className="cursor-pointer" onClick={() => setStatusFilter('completed')}>
+          <StatCard title="Completed" value={completedGoals.length} icon={CheckCircle2} variant="success" className={statusFilter === 'completed' ? 'ring-2 ring-success' : ''} />
+        </div>
       </div>
-      <GoalTable employees={employees} isGroupLead={isGroupLead} teamLeads={teamLeads} />
+      <GoalTable employees={employees} isGroupLead={isGroupLead} teamLeads={teamLeads} statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
     </div>
   );
 }
