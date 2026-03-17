@@ -253,6 +253,49 @@ export default function EmployeeProfile() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add Goal Dialog */}
+      <Dialog open={addGoalOpen} onOpenChange={setAddGoalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add Goal for {user.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Goal Title *</Label>
+              <Input placeholder="e.g. Complete Q2 pipeline review" value={newGoal.title} onChange={e => setNewGoal(g => ({ ...g, title: e.target.value }))} maxLength={200} />
+            </div>
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select value={newGoal.category} onValueChange={v => setNewGoal(g => ({ ...g, category: v }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="call_coaching">Call Coaching</SelectItem>
+                  <SelectItem value="pipe_management">Pipe Management</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea placeholder="Brief description..." value={newGoal.description} onChange={e => setNewGoal(g => ({ ...g, description: e.target.value }))} rows={2} maxLength={500} />
+            </div>
+            <div className="space-y-2">
+              <Label>Game Plan</Label>
+              <Textarea placeholder="Steps to achieve this goal..." value={newGoal.gamePlan} onChange={e => setNewGoal(g => ({ ...g, gamePlan: e.target.value }))} rows={3} maxLength={1000} />
+            </div>
+            <div className="space-y-2">
+              <Label>Deadline *</Label>
+              <Input type="date" value={newGoal.deadline} onChange={e => setNewGoal(g => ({ ...g, deadline: e.target.value }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddGoalOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddGoal}>Create Goal</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
