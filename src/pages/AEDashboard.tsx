@@ -9,10 +9,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 export default function AEDashboard() {
   const { currentUser } = useAuth();
+  const [, forceUpdate] = useState(0);
   const allGoals = getGoalsForUser(currentUser.id);
   const activeGoals = allGoals.filter(g => g.status === 'active');
   const overdueGoals = allGoals.filter(g => g.status === 'overdue');
   const completedGoals = allGoals.filter(g => g.status === 'completed');
+
+  const handleEmployeeToggle = (goal: Goal) => {
+    const g = goals.find(gl => gl.id === goal.id);
+    if (!g) return;
+    g.completedByEmployee = !g.completedByEmployee;
+    forceUpdate(n => n + 1);
+  };
 
   return (
     <div className="space-y-8">
