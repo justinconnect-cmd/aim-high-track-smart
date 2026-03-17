@@ -68,9 +68,31 @@ export default function AEDashboard() {
                     <p className="text-xs text-muted-foreground whitespace-pre-line">{goal.gamePlan}</p>
                   </div>
                 )}
-                <div className="flex gap-4 text-xs">
-                  <span>My mark: {goal.completedByEmployee ? '✅' : '⬜'}</span>
-                  <span>Lead mark: {goal.completedByLead ? '✅' : '⬜'}</span>
+                {/* Completion checkboxes */}
+                <div className="p-4 rounded-lg border border-border bg-muted/30">
+                  <p className="text-sm font-semibold text-foreground mb-3">Successfully completed the target</p>
+                  <div className="flex flex-col gap-3">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <Checkbox
+                        checked={goal.completedByEmployee}
+                        onCheckedChange={() => handleEmployeeToggle(goal)}
+                      />
+                      <span className="text-sm text-foreground">
+                        Employee confirmation
+                        {goal.completedByEmployee && <CheckCircle2 className="w-4 h-4 text-success inline ml-1.5" />}
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-default">
+                      <Checkbox
+                        checked={goal.completedByLead}
+                        disabled
+                      />
+                      <span className="text-sm text-foreground">
+                        Team Lead confirmation
+                        {goal.completedByLead && <CheckCircle2 className="w-4 h-4 text-success inline ml-1.5" />}
+                      </span>
+                    </label>
+                  </div>
                 </div>
               </div>
             ))}
