@@ -24,7 +24,7 @@ export default function AppSidebar() {
       ]
     : [
         { to: "/", icon: LayoutDashboard, label: "Dashboard" },
-        { to: "/employees", icon: isGroupLead ? Users : UserCircle, label: isGroupLead ? "Teams" : "Employees" },
+        { to: "/employees", icon: isGroupLead ? Users : UserCircle, label: isGroupLead ? "Teams" : "Team" },
         { to: "/goals/new", icon: PlusCircle, label: "New Goal" },
       ];
 
