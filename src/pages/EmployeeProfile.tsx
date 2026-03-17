@@ -74,6 +74,31 @@ export default function EmployeeProfile() {
     forceUpdate(n => n + 1);
   };
 
+  const handleAddGoal = () => {
+    if (!newGoal.title.trim() || !newGoal.deadline) {
+      toast.error("Please fill in title and deadline.");
+      return;
+    }
+    goals.push({
+      id: `go_${Date.now()}`,
+      title: newGoal.title.trim(),
+      description: newGoal.description.trim(),
+      gamePlan: newGoal.gamePlan.trim(),
+      assignedTo: id!,
+      assignedBy: currentUser.id,
+      deadline: newGoal.deadline,
+      createdAt: new Date().toISOString().split('T')[0],
+      completedByEmployee: false,
+      completedByLead: false,
+      status: 'active',
+      ...(newGoal.category ? { category: newGoal.category as 'call_coaching' | 'pipe_management' } : {}),
+    });
+    toast.success(`Goal assigned to ${user?.name}!`);
+    setNewGoal({ title: '', description: '', gamePlan: '', deadline: '', category: '' });
+    setAddGoalOpen(false);
+    forceUpdate(n => n + 1);
+  };
+
   if (!user) {
     return (
       <div className="flex items-center justify-center h-64">
