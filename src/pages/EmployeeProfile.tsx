@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Target, CheckCircle2 } from "lucide-react";
 import GoalStatusBadge from "@/components/GoalStatusBadge";
@@ -6,6 +6,9 @@ import { getUserById, getActiveGoals, getCompletedGoals, getGoalsForUser } from 
 
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  const backTo = (location.state as any)?.from || '/employees';
+  const backLabel = backTo === '/' ? 'Back to Dashboard' : 'Back to Employees';
   const user = getUserById(id || '');
   const activeGoals = getActiveGoals(id || '');
   const completedGoals = getCompletedGoals(id || '');
@@ -20,8 +23,8 @@ export default function EmployeeProfile() {
 
   return (
     <div className="space-y-8">
-      <Link to="/employees" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Back to Employees
+      <Link to={backTo} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <ArrowLeft className="w-4 h-4" /> {backLabel}
       </Link>
 
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-4">

@@ -83,7 +83,7 @@ function GoalTable({ employees, isGroupLead, teamLeads }: { employees: User[]; i
                 return (
                   <tr key={emp.id} className={`border-b border-border hover:bg-muted/30 transition-colors ${currentGoal?.status === 'overdue' ? 'bg-destructive/5' : ''}`}>
                     <td className="p-4">
-                      <Link to={`/employees/${emp.id}`} className="flex items-center gap-3">
+                      <Link to={`/employees/${emp.id}`} state={{ from: '/' }} className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-primary-foreground">{emp.avatar}</div>
                         <div>
                           <p className="font-medium text-foreground">{emp.name}</p>
