@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Target, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Target, CheckCircle2, PlusCircle } from "lucide-react";
 import GoalStatusBadge from "@/components/GoalStatusBadge";
 import { getUserById, getActiveGoals, getCompletedGoals, goals, Goal } from "@/data/mockData";
 import { useAuth } from "@/context/AuthContext";
@@ -9,7 +9,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
 export default function EmployeeProfile() {
@@ -24,6 +26,8 @@ export default function EmployeeProfile() {
   // Lead comment dialog state
   const [commentDialogGoal, setCommentDialogGoal] = useState<Goal | null>(null);
   const [leadComment, setLeadComment] = useState('');
+  const [addGoalOpen, setAddGoalOpen] = useState(false);
+  const [newGoal, setNewGoal] = useState({ title: '', description: '', gamePlan: '', deadline: '', category: '' });
 
   const activeGoals = getActiveGoals(id || '');
   const completedGoals = getCompletedGoals(id || '');
@@ -70,6 +74,31 @@ export default function EmployeeProfile() {
     forceUpdate(n => n + 1);
   };
 
+  const handleAddGoal = () => {
+    if (!newGoal.title.trim() || !newGoal.deadline) {
+      toast.error("Please fill in title and deadline.");
+      return;
+    }
+    goals.push({
+      id: `go_${Date.now()}`,
+      title: newGoal.title.trim(),
+      description: newGoal.description.trim(),
+      gamePlan: newGoal.gamePlan.trim(),
+      assignedTo: id!,
+      assignedBy: currentUser.id,
+      deadline: newGoal.deadline,
+      createdAt: new Date().toISOString().split('T')[0],
+      completedByEmployee: false,
+      completedByLead: false,
+      status: 'active',
+      ...(newGoal.category ? { category: newGoal.category as 'call_coaching' | 'pipe_management' } : {}),
+    });
+    toast.success(`Goal assigned to ${user?.name}!`);
+    setNewGoal({ title: '', description: '', gamePlan: '', deadline: '', category: '' });
+    setAddGoalOpen(false);
+    forceUpdate(n => n + 1);
+  };
+
   if (!user) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -84,14 +113,22 @@ export default function EmployeeProfile() {
         <ArrowLeft className="w-4 h-4" /> {backLabel}
       </Link>
 
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-xl font-bold text-primary-foreground">
-          {user.avatar}
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-xl font-bold text-primary-foreground">
+            {user.avatar}
+          </div>
+          <div>
+            <h1 className="text-3xl font-heading font-bold text-foreground">{user.name}</h1>
+            <p className="text-muted-foreground">{user.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} · {user.teamName || 'Leadership'}</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-heading font-bold text-foreground">{user.name}</h1>
-          <p className="text-muted-foreground">{user.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} · {user.teamName || 'Leadership'}</p>
-        </div>
+        {isLead && (
+          <Button onClick={() => setAddGoalOpen(true)} className="gap-2">
+            <PlusCircle className="w-4 h-4" />
+            Add Goal
+          </Button>
+        )}
       </motion.div>
 
       {/* Active Goals */}
@@ -213,6 +250,49 @@ export default function EmployeeProfile() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setCommentDialogGoal(null)}>Cancel</Button>
             <Button onClick={handleLeadConfirm}>Confirm Completion</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Goal Dialog */}
+      <Dialog open={addGoalOpen} onOpenChange={setAddGoalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add Goal for {user.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Goal Title *</Label>
+              <Input placeholder="e.g. Complete Q2 pipeline review" value={newGoal.title} onChange={e => setNewGoal(g => ({ ...g, title: e.target.value }))} maxLength={200} />
+            </div>
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Select value={newGoal.category} onValueChange={v => setNewGoal(g => ({ ...g, category: v }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="call_coaching">Call Coaching</SelectItem>
+                  <SelectItem value="pipe_management">Pipe Management</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea placeholder="Brief description..." value={newGoal.description} onChange={e => setNewGoal(g => ({ ...g, description: e.target.value }))} rows={2} maxLength={500} />
+            </div>
+            <div className="space-y-2">
+              <Label>Game Plan</Label>
+              <Textarea placeholder="Steps to achieve this goal..." value={newGoal.gamePlan} onChange={e => setNewGoal(g => ({ ...g, gamePlan: e.target.value }))} rows={3} maxLength={1000} />
+            </div>
+            <div className="space-y-2">
+              <Label>Deadline *</Label>
+              <Input type="date" value={newGoal.deadline} onChange={e => setNewGoal(g => ({ ...g, deadline: e.target.value }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddGoalOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddGoal}>Create Goal</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
