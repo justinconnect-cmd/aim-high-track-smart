@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Target, CheckCircle2, AlertTriangle, Clock } from "lucide-react";
 import GoalStatusBadge from "@/components/GoalStatusBadge";
 import StatCard from "@/components/StatCard";
-import { getGoalsForUser } from "@/data/mockData";
+import { getGoalsForUser, goals, Goal } from "@/data/mockData";
 import { useAuth } from "@/context/AuthContext";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function AEDashboard() {
   const { currentUser } = useAuth();
