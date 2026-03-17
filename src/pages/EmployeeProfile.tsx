@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Target, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Target, CheckCircle2, PlusCircle } from "lucide-react";
 import GoalStatusBadge from "@/components/GoalStatusBadge";
 import { getUserById, getActiveGoals, getCompletedGoals, goals, Goal } from "@/data/mockData";
 import { useAuth } from "@/context/AuthContext";
@@ -9,7 +9,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
 export default function EmployeeProfile() {
