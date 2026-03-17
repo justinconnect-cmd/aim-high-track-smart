@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import connecteamLogo from "@/assets/connecteam-logo.png";
-import { LayoutDashboard, UserCircle, PlusCircle } from "lucide-react";
+import { LayoutDashboard, UserCircle, PlusCircle, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { users } from "@/data/mockData";
@@ -9,8 +9,8 @@ export default function AppSidebar() {
   const location = useLocation();
   const { currentUser, setCurrentUserId } = useAuth();
   const isEmployee = currentUser.role === 'employee';
+  const isGroupLead = currentUser.role === 'group_lead' || currentUser.role === 'top_level';
 
-  // Role labels
   const roleLabel = {
     top_level: 'Top Level',
     group_lead: 'Group Lead',
@@ -18,18 +18,16 @@ export default function AppSidebar() {
     employee: 'AE',
   }[currentUser.role];
 
-  // Nav items based on role
   const navItems = isEmployee
     ? [
         { to: "/", icon: LayoutDashboard, label: "My Goals" },
       ]
     : [
         { to: "/", icon: LayoutDashboard, label: "Dashboard" },
-        { to: "/employees", icon: UserCircle, label: "Employees" },
+        { to: "/employees", icon: isGroupLead ? Users : UserCircle, label: isGroupLead ? "Teams" : "Employees" },
         { to: "/goals/new", icon: PlusCircle, label: "New Goal" },
       ];
 
-  // Demo role switcher options
   const switchableUsers = [
     { id: 'g1', label: 'Sarah (Group Lead)' },
     { id: 't1', label: 'Maya (Team Lead)' },
@@ -68,7 +66,6 @@ export default function AppSidebar() {
         })}
       </nav>
 
-      {/* Role switcher for demo */}
       <div className="px-3 mb-2">
         <label className="block text-xs text-sidebar-foreground/50 mb-1 px-1">Switch View</label>
         <select

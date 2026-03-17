@@ -1,14 +1,17 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, UserCircle, PlusCircle } from "lucide-react";
-
-const navItems = [
-  { to: "/", icon: LayoutDashboard, label: "Home" },
-  { to: "/employees", icon: UserCircle, label: "Team" },
-  { to: "/goals/new", icon: PlusCircle, label: "New" },
-];
+import { LayoutDashboard, UserCircle, PlusCircle, Users } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function MobileNav() {
   const location = useLocation();
+  const { currentUser } = useAuth();
+  const isGroupLead = currentUser.role === 'group_lead' || currentUser.role === 'top_level';
+
+  const navItems = [
+    { to: "/", icon: LayoutDashboard, label: "Home" },
+    { to: "/employees", icon: isGroupLead ? Users : UserCircle, label: isGroupLead ? "Teams" : "Team" },
+    { to: "/goals/new", icon: PlusCircle, label: "New" },
+  ];
 
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-card border-t border-border">
