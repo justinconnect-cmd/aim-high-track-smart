@@ -1,16 +1,26 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Target, CheckCircle2, AlertTriangle, Clock } from "lucide-react";
 import GoalStatusBadge from "@/components/GoalStatusBadge";
 import StatCard from "@/components/StatCard";
-import { getGoalsForUser } from "@/data/mockData";
+import { getGoalsForUser, goals, Goal } from "@/data/mockData";
 import { useAuth } from "@/context/AuthContext";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function AEDashboard() {
   const { currentUser } = useAuth();
+  const [, forceUpdate] = useState(0);
   const allGoals = getGoalsForUser(currentUser.id);
   const activeGoals = allGoals.filter(g => g.status === 'active');
   const overdueGoals = allGoals.filter(g => g.status === 'overdue');
   const completedGoals = allGoals.filter(g => g.status === 'completed');
+
+  const handleEmployeeToggle = (goal: Goal) => {
+    const g = goals.find(gl => gl.id === goal.id);
+    if (!g) return;
+    g.completedByEmployee = !g.completedByEmployee;
+    forceUpdate(n => n + 1);
+  };
 
   return (
     <div className="space-y-8">
@@ -58,9 +68,31 @@ export default function AEDashboard() {
                     <p className="text-xs text-muted-foreground whitespace-pre-line">{goal.gamePlan}</p>
                   </div>
                 )}
-                <div className="flex gap-4 text-xs">
-                  <span>My mark: {goal.completedByEmployee ? '✅' : '⬜'}</span>
-                  <span>Lead mark: {goal.completedByLead ? '✅' : '⬜'}</span>
+                {/* Completion checkboxes */}
+                <div className="p-4 rounded-lg border border-border bg-muted/30">
+                  <p className="text-sm font-semibold text-foreground mb-3">Successfully completed the target</p>
+                  <div className="flex flex-col gap-3">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <Checkbox
+                        checked={goal.completedByEmployee}
+                        onCheckedChange={() => handleEmployeeToggle(goal)}
+                      />
+                      <span className="text-sm text-foreground">
+                        Employee confirmation
+                        {goal.completedByEmployee && <CheckCircle2 className="w-4 h-4 text-success inline ml-1.5" />}
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-default">
+                      <Checkbox
+                        checked={goal.completedByLead}
+                        disabled
+                      />
+                      <span className="text-sm text-foreground">
+                        Team Lead confirmation
+                        {goal.completedByLead && <CheckCircle2 className="w-4 h-4 text-success inline ml-1.5" />}
+                      </span>
+                    </label>
+                  </div>
                 </div>
               </div>
             ))}
