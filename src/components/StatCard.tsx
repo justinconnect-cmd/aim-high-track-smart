@@ -1,12 +1,13 @@
 import { motion } from "framer-motion";
 import { LucideIcon } from "lucide-react";
 
-interface StatCardProps {
+export interface StatCardProps {
   title: string;
   value: string | number;
   subtitle?: string;
   icon: LucideIcon;
   variant?: 'default' | 'accent' | 'success' | 'warning' | 'info';
+  className?: string;
 }
 
 const variantClasses = {
