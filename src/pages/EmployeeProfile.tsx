@@ -1,17 +1,40 @@
+import { useState } from "react";
 import { useParams, Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Target, CheckCircle2 } from "lucide-react";
 import GoalStatusBadge from "@/components/GoalStatusBadge";
-import { getUserById, getActiveGoals, getCompletedGoals, getGoalsForUser } from "@/data/mockData";
+import { getUserById, getActiveGoals, getCompletedGoals, goals, Goal } from "@/data/mockData";
+import { useAuth } from "@/context/AuthContext";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
 
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
+  const { currentUser } = useAuth();
   const backTo = (location.state as any)?.from || '/employees';
   const backLabel = backTo === '/' ? 'Back to Dashboard' : 'Back to Employees';
   const user = getUserById(id || '');
+  const [, forceUpdate] = useState(0);
+
   const activeGoals = getActiveGoals(id || '');
   const completedGoals = getCompletedGoals(id || '');
+
+  const isEmployee = currentUser.id === id;
+  const isLead = currentUser.role === 'team_lead' || currentUser.role === 'group_lead' || currentUser.role === 'top_level';
+
+  const handleToggle = (goal: Goal, field: 'completedByEmployee' | 'completedByLead') => {
+    const g = goals.find(gl => gl.id === goal.id);
+    if (!g) return;
+    g[field] = !g[field];
+    if (g.completedByEmployee && g.completedByLead) {
+      g.status = 'completed';
+      toast.success(`"${g.title}" marked as completed!`);
+    } else {
+      if (g.status === 'completed') g.status = 'active';
+    }
+    forceUpdate(n => n + 1);
+  };
 
   if (!user) {
     return (
@@ -62,10 +85,35 @@ export default function EmployeeProfile() {
                       <p className="text-xs font-medium text-muted-foreground mb-1">Game Plan</p>
                       <p className="text-sm text-foreground whitespace-pre-line">{goal.gamePlan}</p>
                     </div>
-                    <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
-                      <span>Due: {goal.deadline}</span>
-                      <span>Employee: {goal.completedByEmployee ? '✅' : '⬜'}</span>
-                      <span>Lead: {goal.completedByLead ? '✅' : '⬜'}</span>
+                    <p className="text-xs text-muted-foreground mt-3">Due: {goal.deadline}</p>
+
+                    {/* Completion checkboxes */}
+                    <div className="mt-4 p-4 rounded-lg border border-border bg-muted/30">
+                      <p className="text-sm font-semibold text-foreground mb-3">Successfully completed the target</p>
+                      <div className="flex flex-col gap-3">
+                        <label className={`flex items-center gap-3 ${isEmployee ? 'cursor-pointer' : 'cursor-default'}`}>
+                          <Checkbox
+                            checked={goal.completedByEmployee}
+                            onCheckedChange={() => handleToggle(goal, 'completedByEmployee')}
+                            disabled={!isEmployee}
+                          />
+                          <span className="text-sm text-foreground">
+                            Employee confirmation
+                            {goal.completedByEmployee && <CheckCircle2 className="w-4 h-4 text-success inline ml-1.5" />}
+                          </span>
+                        </label>
+                        <label className={`flex items-center gap-3 ${isLead ? 'cursor-pointer' : 'cursor-default'}`}>
+                          <Checkbox
+                            checked={goal.completedByLead}
+                            onCheckedChange={() => handleToggle(goal, 'completedByLead')}
+                            disabled={!isLead}
+                          />
+                          <span className="text-sm text-foreground">
+                            Team Lead confirmation
+                            {goal.completedByLead && <CheckCircle2 className="w-4 h-4 text-success inline ml-1.5" />}
+                          </span>
+                        </label>
+                      </div>
                     </div>
                   </div>
                   <GoalStatusBadge status={goal.status} />
