@@ -24,6 +24,7 @@ export interface Goal {
   completedByLead: boolean;
   status: 'active' | 'completed' | 'overdue';
   category?: 'call_coaching' | 'pipe_management';
+  leadComment?: string;
 }
 
 export const users: User[] = [

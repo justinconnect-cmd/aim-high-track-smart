@@ -6,6 +6,10 @@ import GoalStatusBadge from "@/components/GoalStatusBadge";
 import { getUserById, getActiveGoals, getCompletedGoals, goals, Goal } from "@/data/mockData";
 import { useAuth } from "@/context/AuthContext";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export default function EmployeeProfile() {
@@ -17,23 +21,52 @@ export default function EmployeeProfile() {
   const user = getUserById(id || '');
   const [, forceUpdate] = useState(0);
 
+  // Lead comment dialog state
+  const [commentDialogGoal, setCommentDialogGoal] = useState<Goal | null>(null);
+  const [leadComment, setLeadComment] = useState('');
+
   const activeGoals = getActiveGoals(id || '');
   const completedGoals = getCompletedGoals(id || '');
 
   const isEmployee = currentUser.id === id;
   const isLead = currentUser.role === 'team_lead' || currentUser.role === 'group_lead' || currentUser.role === 'top_level';
 
-  const handleToggle = (goal: Goal, field: 'completedByEmployee' | 'completedByLead') => {
+  const handleEmployeeToggle = (goal: Goal) => {
     const g = goals.find(gl => gl.id === goal.id);
     if (!g) return;
-    g[field] = !g[field];
-    // Goal is only completed once the team lead confirms it
-    if (g.completedByLead) {
-      g.status = 'completed';
-      toast.success(`"${g.title}" marked as completed!`);
-    } else {
+    g.completedByEmployee = !g.completedByEmployee;
+    forceUpdate(n => n + 1);
+  };
+
+  const handleLeadCheck = (goal: Goal) => {
+    if (goal.completedByLead) {
+      // Unchecking — remove completion
+      const g = goals.find(gl => gl.id === goal.id);
+      if (!g) return;
+      g.completedByLead = false;
+      g.leadComment = undefined;
       if (g.status === 'completed') g.status = 'active';
+      forceUpdate(n => n + 1);
+    } else {
+      // Checking — open comment dialog
+      setLeadComment('');
+      setCommentDialogGoal(goal);
     }
+  };
+
+  const handleLeadConfirm = () => {
+    if (!leadComment.trim()) {
+      toast.error("Please add a comment before confirming.");
+      return;
+    }
+    const g = goals.find(gl => gl.id === commentDialogGoal?.id);
+    if (!g) return;
+    g.completedByLead = true;
+    g.leadComment = leadComment.trim();
+    g.status = 'completed';
+    toast.success(`"${g.title}" marked as completed!`);
+    setCommentDialogGoal(null);
+    setLeadComment('');
     forceUpdate(n => n + 1);
   };
 
@@ -95,7 +128,7 @@ export default function EmployeeProfile() {
                         <label className={`flex items-center gap-3 ${isEmployee ? 'cursor-pointer' : 'cursor-default'}`}>
                           <Checkbox
                             checked={goal.completedByEmployee}
-                            onCheckedChange={() => handleToggle(goal, 'completedByEmployee')}
+                            onCheckedChange={() => handleEmployeeToggle(goal)}
                             disabled={!isEmployee}
                           />
                           <span className="text-sm text-foreground">
@@ -106,7 +139,7 @@ export default function EmployeeProfile() {
                         <label className={`flex items-center gap-3 ${isLead ? 'cursor-pointer' : 'cursor-default'}`}>
                           <Checkbox
                             checked={goal.completedByLead}
-                            onCheckedChange={() => handleToggle(goal, 'completedByLead')}
+                            onCheckedChange={() => handleLeadCheck(goal)}
                             disabled={!isLead}
                           />
                           <span className="text-sm text-foreground">
@@ -142,6 +175,12 @@ export default function EmployeeProfile() {
                     <h3 className="font-semibold text-foreground">{goal.title}</h3>
                     <p className="text-sm text-muted-foreground mt-1">{goal.description}</p>
                     <p className="text-xs text-muted-foreground mt-2">Completed · Deadline was {goal.deadline}</p>
+                    {goal.leadComment && (
+                      <div className="mt-2 p-2 rounded-md bg-muted/50">
+                        <p className="text-xs font-medium text-muted-foreground">Lead comment:</p>
+                        <p className="text-xs text-foreground">{goal.leadComment}</p>
+                      </div>
+                    )}
                   </div>
                   <GoalStatusBadge status={goal.status} />
                 </div>
@@ -150,6 +189,33 @@ export default function EmployeeProfile() {
           </div>
         )}
       </section>
+
+      {/* Lead Comment Dialog */}
+      <Dialog open={!!commentDialogGoal} onOpenChange={(open) => !open && setCommentDialogGoal(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Goal Completion</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            You're confirming <span className="font-medium text-foreground">"{commentDialogGoal?.title}"</span> as completed. Please add a comment.
+          </p>
+          <div className="space-y-2">
+            <Label htmlFor="lead-comment">Comment</Label>
+            <Textarea
+              id="lead-comment"
+              placeholder="e.g. Great work, target achieved ahead of schedule..."
+              value={leadComment}
+              onChange={e => setLeadComment(e.target.value)}
+              maxLength={500}
+              rows={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCommentDialogGoal(null)}>Cancel</Button>
+            <Button onClick={handleLeadConfirm}>Confirm Completion</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
