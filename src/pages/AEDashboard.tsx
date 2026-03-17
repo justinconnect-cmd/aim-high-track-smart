@@ -39,11 +39,13 @@ export default function AEDashboard() {
                     <h3 className="font-medium text-foreground">{goal.title}</h3>
                     {goal.status === 'overdue' && <AlertTriangle className="w-4 h-4 text-destructive" />}
                   </div>
-                  <GoalStatusBadge status={goal.status} />
+                  <div className="flex items-center gap-3">
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground"><Clock className="w-3.5 h-3.5" /> Due {goal.deadline}</span>
+                    <GoalStatusBadge status={goal.status} />
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground">{goal.description}</p>
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> Due {goal.deadline}</span>
                   {goal.category && (
                     <span className="px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground font-medium">
                       {goal.category === 'call_coaching' ? 'Call Coaching' : 'Pipe Management'}
