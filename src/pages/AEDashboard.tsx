@@ -76,12 +76,20 @@ export default function AEDashboard() {
           </div>
           <div className="divide-y divide-border">
             {completedGoals.map(goal => (
-              <div key={goal.id} className="p-4 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-foreground">{goal.title}</p>
-                  <p className="text-xs text-muted-foreground">Completed · Due {goal.deadline}</p>
+              <div key={goal.id} className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{goal.title}</p>
+                    <p className="text-xs text-muted-foreground">Completed · Due {goal.deadline}</p>
+                  </div>
+                  <GoalStatusBadge status={goal.status} />
                 </div>
-                <GoalStatusBadge status={goal.status} />
+                {goal.leadComment && (
+                  <div className="mt-2 p-2 rounded-md bg-muted/50">
+                    <p className="text-xs font-medium text-muted-foreground">Lead comment:</p>
+                    <p className="text-xs text-foreground">{goal.leadComment}</p>
+                  </div>
+                )}
               </div>
             ))}
           </div>
