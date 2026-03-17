@@ -6,6 +6,9 @@ import { getUserById, getActiveGoals, getCompletedGoals, getGoalsForUser } from 
 
 export default function EmployeeProfile() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  const backTo = (location.state as any)?.from || '/employees';
+  const backLabel = backTo === '/' ? 'Back to Dashboard' : 'Back to Employees';
   const user = getUserById(id || '');
   const activeGoals = getActiveGoals(id || '');
   const completedGoals = getCompletedGoals(id || '');
