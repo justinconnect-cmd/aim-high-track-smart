@@ -26,6 +26,8 @@ export default function EmployeeProfile() {
   // Lead comment dialog state
   const [commentDialogGoal, setCommentDialogGoal] = useState<Goal | null>(null);
   const [leadComment, setLeadComment] = useState('');
+  const [addGoalOpen, setAddGoalOpen] = useState(false);
+  const [newGoal, setNewGoal] = useState({ title: '', description: '', gamePlan: '', deadline: '', category: '' });
 
   const activeGoals = getActiveGoals(id || '');
   const completedGoals = getCompletedGoals(id || '');
