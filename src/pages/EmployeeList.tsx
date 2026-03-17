@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ChevronRight, UserPlus } from "lucide-react";
-import { getActiveGoals, getVisibleEmployees, users, User, UserRole } from "@/data/mockData";
+import { ChevronRight, UserPlus, ArrowLeft, Users } from "lucide-react";
+import { getActiveGoals, getVisibleEmployees, getTeamLeadsUnder, getDirectReports, users, User, UserRole } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,16 +24,12 @@ function getRoleOptionsForUser(currentRole: UserRole) {
   return [];
 }
 
-export default function EmployeeList() {
-  const { currentUser } = useAuth();
-  const employees = getVisibleEmployees(currentUser.id);
-  const canAdd = ['top_level', 'group_lead', 'team_lead'].includes(currentUser.role);
-  const availableRoles = getRoleOptionsForUser(currentUser.role);
-
+function AddEmployeeDialog({ currentUser }: { currentUser: User }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [role, setRole] = useState<UserRole | ''>('');
   const [segment, setSegment] = useState<'11-50' | '51-100' | ''>('');
+  const availableRoles = getRoleOptionsForUser(currentUser.role);
 
   const handleAdd = () => {
     if (!name.trim() || !role) {
@@ -59,66 +55,144 @@ export default function EmployeeList() {
   };
 
   return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button className="gap-2">
+          <UserPlus className="w-4 h-4" />
+          Add Employee
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add New Employee</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label htmlFor="emp-name">Full Name</Label>
+            <Input id="emp-name" placeholder="e.g. John Smith" value={name} onChange={e => setName(e.target.value)} maxLength={100} />
+          </div>
+          <div className="space-y-2">
+            <Label>Role</Label>
+            <Select value={role} onValueChange={(v) => setRole(v as UserRole)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a role" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableRoles.map(r => (
+                  <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {role === 'employee' && (
+            <div className="space-y-2">
+              <Label>Segment</Label>
+              <Select value={segment} onValueChange={(v) => setSegment(v as '11-50' | '51-100')}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select segment" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="11-50">11-50</SelectItem>
+                  <SelectItem value="51-100">51-100</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Cancel</Button>
+          </DialogClose>
+          <Button onClick={handleAdd}>Add Employee</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export default function EmployeeList() {
+  const { currentUser } = useAuth();
+  const isGroupLead = currentUser.role === 'group_lead' || currentUser.role === 'top_level';
+  const canAdd = ['top_level', 'group_lead', 'team_lead'].includes(currentUser.role);
+
+  // For group leads: drill-down from team leads → AEs
+  const [selectedTeamLead, setSelectedTeamLead] = useState<User | null>(null);
+
+  const teamLeads = isGroupLead ? getTeamLeadsUnder(currentUser.id) : [];
+  const employees = isGroupLead
+    ? (selectedTeamLead ? getDirectReports(selectedTeamLead.id) : [])
+    : getVisibleEmployees(currentUser.id);
+
+  // Group lead viewing teams
+  if (isGroupLead && !selectedTeamLead) {
+    return (
+      <div className="space-y-6">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-heading font-bold text-foreground">My Teams</h1>
+            <p className="text-muted-foreground mt-1">Select a team lead to view their AEs</p>
+          </div>
+          {canAdd && <AddEmployeeDialog currentUser={currentUser} />}
+        </motion.div>
+
+        <div className="grid gap-3">
+          {teamLeads.map((tl, i) => {
+            const aes = getDirectReports(tl.id);
+            const allGoals = aes.flatMap(ae => getActiveGoals(ae.id));
+            const overdueCount = allGoals.filter(g => g.status === 'overdue').length;
+            return (
+              <motion.div key={tl.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                <button
+                  onClick={() => setSelectedTeamLead(tl)}
+                  className="w-full flex items-center justify-between bg-card rounded-xl border border-border p-4 hover:border-accent/40 transition-colors group text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center text-sm font-bold text-accent-foreground">
+                      {tl.avatar}
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">{tl.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        <Users className="w-3 h-3 inline mr-1" />
+                        {tl.teamName && <span className="mr-1">Team {tl.teamName} ·</span>}
+                        {aes.length} AE{aes.length !== 1 ? 's' : ''}
+                        {overdueCount > 0 && <span className="text-destructive ml-1">· {overdueCount} overdue</span>}
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
+                </button>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Team lead view OR group lead drilled into a team
+  return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-heading font-bold text-foreground">My Team</h1>
-          <p className="text-muted-foreground mt-1">Click on an employee to view their profile</p>
+          {selectedTeamLead && (
+            <button
+              onClick={() => setSelectedTeamLead(null)}
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-2"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to Teams
+            </button>
+          )}
+          <h1 className="text-3xl font-heading font-bold text-foreground">
+            {selectedTeamLead ? `Team ${selectedTeamLead.teamName}` : 'My Team'}
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            {selectedTeamLead
+              ? `${selectedTeamLead.name}'s AEs`
+              : 'Click on an employee to view their profile'}
+          </p>
         </div>
-        {canAdd && (
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <UserPlus className="w-4 h-4" />
-                Add Employee
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Employee</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 py-2">
-                <div className="space-y-2">
-                  <Label htmlFor="emp-name">Full Name</Label>
-                  <Input id="emp-name" placeholder="e.g. John Smith" value={name} onChange={e => setName(e.target.value)} maxLength={100} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Role</Label>
-                  <Select value={role} onValueChange={(v) => setRole(v as UserRole)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableRoles.map(r => (
-                        <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                {role === 'employee' && (
-                  <div className="space-y-2">
-                    <Label>Segment</Label>
-                    <Select value={segment} onValueChange={(v) => setSegment(v as '11-50' | '51-100')}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select segment" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="11-50">11-50</SelectItem>
-                        <SelectItem value="51-100">51-100</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button variant="outline">Cancel</Button>
-                </DialogClose>
-                <Button onClick={handleAdd}>Add Employee</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        )}
+        {canAdd && <AddEmployeeDialog currentUser={currentUser} />}
       </motion.div>
 
       <div className="grid gap-3">
@@ -129,6 +203,7 @@ export default function EmployeeList() {
             <motion.div key={emp.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
               <Link
                 to={`/employees/${emp.id}`}
+                state={{ from: '/employees' }}
                 className="flex items-center justify-between bg-card rounded-xl border border-border p-4 hover:border-accent/40 transition-colors group"
               >
                 <div className="flex items-center gap-3">
