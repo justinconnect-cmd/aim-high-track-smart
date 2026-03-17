@@ -27,7 +27,8 @@ export default function EmployeeProfile() {
     const g = goals.find(gl => gl.id === goal.id);
     if (!g) return;
     g[field] = !g[field];
-    if (g.completedByEmployee && g.completedByLead) {
+    // Goal is only completed once the team lead confirms it
+    if (g.completedByLead) {
       g.status = 'completed';
       toast.success(`"${g.title}" marked as completed!`);
     } else {
