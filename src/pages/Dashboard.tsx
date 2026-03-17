@@ -9,8 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import AEDashboard from "./AEDashboard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
-function GoalTable({ employees, isGroupLead, teamLeads }: { employees: User[]; isGroupLead: boolean; teamLeads: User[] }) {
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'overdue' | 'completed'>('all');
+function GoalTable({ employees, isGroupLead, teamLeads, statusFilter, setStatusFilter }: { employees: User[]; isGroupLead: boolean; teamLeads: User[]; statusFilter: 'all' | 'active' | 'overdue' | 'completed'; setStatusFilter: (f: 'all' | 'active' | 'overdue' | 'completed') => void }) {
   const [segmentFilter, setSegmentFilter] = useState<'all' | Segment>('all');
   const [teamLeadFilter, setTeamLeadFilter] = useState<string>('all');
 
