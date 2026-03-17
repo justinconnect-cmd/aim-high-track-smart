@@ -113,14 +113,22 @@ export default function EmployeeProfile() {
         <ArrowLeft className="w-4 h-4" /> {backLabel}
       </Link>
 
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-xl font-bold text-primary-foreground">
-          {user.avatar}
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-xl font-bold text-primary-foreground">
+            {user.avatar}
+          </div>
+          <div>
+            <h1 className="text-3xl font-heading font-bold text-foreground">{user.name}</h1>
+            <p className="text-muted-foreground">{user.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} · {user.teamName || 'Leadership'}</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-heading font-bold text-foreground">{user.name}</h1>
-          <p className="text-muted-foreground">{user.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} · {user.teamName || 'Leadership'}</p>
-        </div>
+        {isLead && (
+          <Button onClick={() => setAddGoalOpen(true)} className="gap-2">
+            <PlusCircle className="w-4 h-4" />
+            Add Goal
+          </Button>
+        )}
       </motion.div>
 
       {/* Active Goals */}
