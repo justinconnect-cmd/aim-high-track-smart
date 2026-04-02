@@ -1,13 +1,13 @@
 import { NavLink, useLocation } from "react-router-dom";
 import connecteamLogo from "@/assets/connecteam-logo.png";
-import { LayoutDashboard, UserCircle, PlusCircle, Users } from "lucide-react";
+import { LayoutDashboard, UserCircle, PlusCircle, Users, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { users } from "@/data/mockData";
 
 export default function AppSidebar() {
   const location = useLocation();
-  const { currentUser, setCurrentUserId } = useAuth();
+  const { currentUser, setCurrentUserId, signOut } = useAuth();
   const isEmployee = currentUser.role === 'employee';
   const isGroupLead = currentUser.role === 'group_lead' || currentUser.role === 'top_level';
 
@@ -79,11 +79,19 @@ export default function AppSidebar() {
         </select>
       </div>
 
-      <div className="p-4 mx-3 mb-4 rounded-lg bg-sidebar-accent">
+      <div className="p-4 mx-3 mb-2 rounded-lg bg-sidebar-accent">
         <p className="text-xs text-sidebar-foreground/60">Logged in as</p>
         <p className="text-sm font-semibold text-sidebar-accent-foreground">{currentUser.name}</p>
         <p className="text-xs text-sidebar-foreground/50">{roleLabel}{currentUser.teamName ? ` · ${currentUser.teamName}` : ''}</p>
       </div>
+
+      <button
+        onClick={signOut}
+        className="flex items-center gap-2 mx-3 mb-4 px-4 py-2 rounded-lg text-sm text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+      >
+        <LogOut className="w-4 h-4" />
+        Sign out
+      </button>
     </aside>
   );
 }
