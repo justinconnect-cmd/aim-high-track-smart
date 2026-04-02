@@ -132,7 +132,7 @@ export default function EmployeeList() {
 
   if (!currentUser) return null;
 
-  const mockProxy = getMockProxy(currentUser.role, currentUser.teamName);
+  const mockProxy = users.find(u => u.role === currentUser.role && u.teamName === currentUser.teamName) || users.find(u => u.role === currentUser.role) || users[0];
   const isGroupLead = currentUser.role === 'group_lead' || currentUser.role === 'top_level';
   const canAdd = ['top_level', 'group_lead', 'team_lead'].includes(currentUser.role);
 
