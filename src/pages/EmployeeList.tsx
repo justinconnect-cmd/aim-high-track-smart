@@ -149,7 +149,7 @@ export default function EmployeeList() {
             <h1 className="text-3xl font-heading font-bold text-foreground">My Teams</h1>
             <p className="text-muted-foreground mt-1">Select a team lead to view their AEs</p>
           </div>
-          {canAdd && <AddEmployeeDialog mockUser={mockProxy} />}
+          {canAdd && <AddEmployeeDialog currentUser={currentUser} />}
         </motion.div>
 
         <div className="grid gap-3">
