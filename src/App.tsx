@@ -11,6 +11,7 @@ import EmployeeList from "@/pages/EmployeeList";
 import EmployeeProfile from "@/pages/EmployeeProfile";
 import GoalEntry from "@/pages/GoalEntry";
 import Login from "@/pages/Login";
+import AdminPanel from "@/pages/AdminPanel";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ function ProtectedLayout() {
           <Route path="/employees" element={<EmployeeList />} />
           <Route path="/employees/:id" element={<EmployeeProfile />} />
           <Route path="/goals/new" element={<GoalEntry />} />
+          <Route path="/admin" element={<AdminPanel />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

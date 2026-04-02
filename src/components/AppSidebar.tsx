@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import connecteamLogo from "@/assets/connecteam-logo.png";
-import { LayoutDashboard, UserCircle, PlusCircle, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, UserCircle, PlusCircle, Users, LogOut, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { users } from "@/data/mockData";
@@ -18,6 +18,8 @@ export default function AppSidebar() {
     employee: 'AE',
   }[currentUser.role];
 
+  const isTopLevel = currentUser.role === 'top_level';
+
   const navItems = isEmployee
     ? [
         { to: "/", icon: LayoutDashboard, label: "My Goals" },
@@ -26,6 +28,7 @@ export default function AppSidebar() {
         { to: "/", icon: LayoutDashboard, label: "Dashboard" },
         { to: "/employees", icon: isGroupLead ? Users : UserCircle, label: isGroupLead ? "Teams" : "Team" },
         { to: "/goals/new", icon: PlusCircle, label: "New Goal" },
+        ...(isTopLevel ? [{ to: "/admin", icon: Shield, label: "Admin" }] : []),
       ];
 
   const switchableUsers = [
