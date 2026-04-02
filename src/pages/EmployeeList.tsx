@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const roleOptions: { value: UserRole; label: string }[] = [
   { value: 'group_lead', label: 'Group Lead' },
@@ -24,42 +25,56 @@ function getRoleOptionsForUser(currentRole: UserRole) {
   return [];
 }
 
-function getMockProxy(role: string, teamName: string | null) {
-  const byRoleAndTeam = users.find(u => u.role === role && u.teamName === teamName);
-  if (byRoleAndTeam) return byRoleAndTeam;
-  const byRole = users.find(u => u.role === role);
-  if (byRole) return byRole;
-  return users.find(u => u.role === 'top_level') || users[0];
-}
-
-function AddEmployeeDialog({ mockUser }: { mockUser: User }) {
+function AddEmployeeDialog({ currentUser }: { currentUser: { role: UserRole; teamName: string | null } }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [role, setRole] = useState<UserRole | ''>('');
-  const [segment, setSegment] = useState<'11-50' | '51-100' | ''>('');
-  const availableRoles = getRoleOptionsForUser(mockUser.role);
+  const [saving, setSaving] = useState(false);
+  const availableRoles = getRoleOptionsForUser(currentUser.role);
 
-  const handleAdd = () => {
-    if (!name.trim() || !role) {
-      toast.error("Please fill in name and role.");
+  const handleAdd = async () => {
+    if (!name.trim() || !email.trim() || !role) {
+      toast.error("Please fill in name, email, and role.");
       return;
     }
-    const initials = name.trim().split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-    const newUser: User = {
-      id: `u_${Date.now()}`,
-      name: name.trim(),
-      avatar: initials,
-      role: role as UserRole,
-      managerId: mockUser.id,
-      ...(role === 'employee' && segment ? { segment: segment as '11-50' | '51-100' } : {}),
-      ...(mockUser.teamName ? { teamName: mockUser.teamName } : {}),
-    };
-    users.push(newUser);
-    toast.success(`${newUser.name} added as ${availableRoles.find(r => r.value === role)?.label}`);
-    setName('');
-    setRole('');
-    setSegment('');
-    setOpen(false);
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+
+      const res = await supabase.functions.invoke("create-user", {
+        body: {
+          name: name.trim(),
+          email: email.trim().toLowerCase(),
+          role,
+          team_name: currentUser.teamName,
+        },
+      });
+
+      if (res.error || res.data?.error) {
+        toast.error(res.data?.error || res.error?.message || "Failed to add user");
+        setSaving(false);
+        return;
+      }
+
+      toast.success(`${name.trim()} added as ${availableRoles.find(r => r.value === role)?.label}`);
+      setName('');
+      setEmail('');
+      setRole('');
+      setOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add user");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -80,6 +95,10 @@ function AddEmployeeDialog({ mockUser }: { mockUser: User }) {
             <Input id="emp-name" placeholder="e.g. John Smith" value={name} onChange={e => setName(e.target.value)} maxLength={100} />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="emp-email">Email Address</Label>
+            <Input id="emp-email" type="email" placeholder="e.g. john@company.com" value={email} onChange={e => setEmail(e.target.value)} maxLength={255} />
+          </div>
+          <div className="space-y-2">
             <Label>Role</Label>
             <Select value={role} onValueChange={(v) => setRole(v as UserRole)}>
               <SelectTrigger>
@@ -92,26 +111,14 @@ function AddEmployeeDialog({ mockUser }: { mockUser: User }) {
               </SelectContent>
             </Select>
           </div>
-          {role === 'employee' && (
-            <div className="space-y-2">
-              <Label>Segment</Label>
-              <Select value={segment} onValueChange={(v) => setSegment(v as '11-50' | '51-100')}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select segment" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="11-50">11-50</SelectItem>
-                  <SelectItem value="51-100">51-100</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
         </div>
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
-          <Button onClick={handleAdd}>Add Employee</Button>
+          <Button onClick={handleAdd} disabled={saving}>
+            {saving ? "Adding..." : "Add Employee"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
