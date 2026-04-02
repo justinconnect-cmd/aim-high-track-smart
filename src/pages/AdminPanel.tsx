@@ -5,6 +5,7 @@ import { Shield, UserCircle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
@@ -13,6 +14,7 @@ interface UserWithRole {
   user_id: string;
   email: string | null;
   name: string | null;
+  team_name: string | null;
   role: AppRole;
   role_row_id: string;
 }
@@ -35,13 +37,13 @@ export default function AdminPanel() {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [editingTeam, setEditingTeam] = useState<Record<string, string>>({});
 
   const fetchUsers = async () => {
     setLoading(true);
-    // Get all profiles
     const { data: profiles, error: profilesErr } = await supabase
       .from("profiles")
-      .select("user_id, email, name");
+      .select("user_id, email, name, team_name");
 
     if (profilesErr) {
       toast.error("Failed to load users");
@@ -49,7 +51,6 @@ export default function AdminPanel() {
       return;
     }
 
-    // Get all roles
     const { data: roles, error: rolesErr } = await supabase
       .from("user_roles")
       .select("id, user_id, role");
@@ -66,6 +67,7 @@ export default function AdminPanel() {
         user_id: p.user_id,
         email: p.email,
         name: p.name,
+        team_name: p.team_name,
         role: roleRow?.role ?? "employee",
         role_row_id: roleRow?.id ?? "",
       };
@@ -81,7 +83,7 @@ export default function AdminPanel() {
 
   const handleRoleChange = async (userId: string, roleRowId: string, newRole: AppRole) => {
     setUpdating(userId);
-    
+
     if (roleRowId) {
       const { error } = await supabase
         .from("user_roles")
@@ -110,13 +112,39 @@ export default function AdminPanel() {
     setUpdating(null);
   };
 
+  const handleTeamSave = async (userId: string) => {
+    const newTeam = editingTeam[userId];
+    if (newTeam === undefined) return;
+
+    setUpdating(userId);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ team_name: newTeam || null })
+      .eq("user_id", userId);
+
+    if (error) {
+      toast.error("Failed to update team");
+      setUpdating(null);
+      return;
+    }
+
+    toast.success("Team updated successfully");
+    setEditingTeam((prev) => {
+      const next = { ...prev };
+      delete next[userId];
+      return next;
+    });
+    await fetchUsers();
+    setUpdating(null);
+  };
+
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
         <Shield className="w-7 h-7 text-primary" />
         <div>
           <h1 className="text-2xl font-bold text-foreground">Admin Panel</h1>
-          <p className="text-sm text-muted-foreground">Manage user roles and permissions</p>
+          <p className="text-sm text-muted-foreground">Manage user roles, teams, and permissions</p>
         </div>
       </div>
 
@@ -138,41 +166,65 @@ export default function AdminPanel() {
                 <TableHead>Email</TableHead>
                 <TableHead>Current Role</TableHead>
                 <TableHead>Change Role</TableHead>
+                <TableHead>Team</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.user_id}>
-                  <TableCell className="font-medium">
-                    {user.name || "—"}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {user.email || "—"}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className={ROLE_COLORS[user.role]}>
-                      {ROLE_LABELS[user.role]}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={user.role}
-                      onValueChange={(val) => handleRoleChange(user.user_id, user.role_row_id, val as AppRole)}
-                      disabled={updating === user.user_id}
-                    >
-                      <SelectTrigger className="w-[160px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="employee">AE</SelectItem>
-                        <SelectItem value="team_lead">Team Lead</SelectItem>
-                        <SelectItem value="group_lead">Group Lead</SelectItem>
-                        <SelectItem value="top_level">Top Level</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {users.map((user) => {
+                const isEditing = editingTeam[user.user_id] !== undefined;
+                const teamValue = isEditing ? editingTeam[user.user_id] : (user.team_name ?? "");
+                return (
+                  <TableRow key={user.user_id}>
+                    <TableCell className="font-medium">
+                      {user.name || "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {user.email || "—"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className={ROLE_COLORS[user.role]}>
+                        {ROLE_LABELS[user.role]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={user.role}
+                        onValueChange={(val) => handleRoleChange(user.user_id, user.role_row_id, val as AppRole)}
+                        disabled={updating === user.user_id}
+                      >
+                        <SelectTrigger className="w-[140px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="employee">AE</SelectItem>
+                          <SelectItem value="team_lead">Team Lead</SelectItem>
+                          <SelectItem value="group_lead">Group Lead</SelectItem>
+                          <SelectItem value="top_level">Top Level</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          className="w-[120px] h-9"
+                          placeholder="No team"
+                          value={teamValue}
+                          onChange={(e) =>
+                            setEditingTeam((prev) => ({ ...prev, [user.user_id]: e.target.value }))
+                          }
+                          onBlur={() => {
+                            if (isEditing) handleTeamSave(user.user_id);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && isEditing) handleTeamSave(user.user_id);
+                          }}
+                          disabled={updating === user.user_id}
+                        />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         )}
