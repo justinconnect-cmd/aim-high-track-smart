@@ -32,6 +32,7 @@ export default function AppSidebar() {
       ];
 
   const switchableUsers = [
+    { id: 'u1', label: 'Boneh (Top Level)' },
     { id: 'g1', label: 'Sarah (Group Lead)' },
     { id: 't1', label: 'Maya (Team Lead)' },
     { id: 'e1', label: 'Tal (AE)' },
