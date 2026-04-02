@@ -18,6 +18,8 @@ export default function AppSidebar() {
     employee: 'AE',
   }[currentUser.role];
 
+  const isTopLevel = currentUser.role === 'top_level';
+
   const navItems = isEmployee
     ? [
         { to: "/", icon: LayoutDashboard, label: "My Goals" },
@@ -26,6 +28,7 @@ export default function AppSidebar() {
         { to: "/", icon: LayoutDashboard, label: "Dashboard" },
         { to: "/employees", icon: isGroupLead ? Users : UserCircle, label: isGroupLead ? "Teams" : "Team" },
         { to: "/goals/new", icon: PlusCircle, label: "New Goal" },
+        ...(isTopLevel ? [{ to: "/admin", icon: Shield, label: "Admin" }] : []),
       ];
 
   const switchableUsers = [

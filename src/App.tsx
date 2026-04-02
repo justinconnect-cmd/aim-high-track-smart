@@ -40,6 +40,7 @@ function ProtectedLayout() {
           <Route path="/employees" element={<EmployeeList />} />
           <Route path="/employees/:id" element={<EmployeeProfile />} />
           <Route path="/goals/new" element={<GoalEntry />} />
+          <Route path="/admin" element={<AdminPanel />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
