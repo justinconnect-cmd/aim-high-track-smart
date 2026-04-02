@@ -3,14 +3,27 @@ import { motion } from "framer-motion";
 import { Target, CheckCircle2, AlertTriangle, Clock } from "lucide-react";
 import GoalStatusBadge from "@/components/GoalStatusBadge";
 import StatCard from "@/components/StatCard";
-import { getGoalsForUser, goals, Goal } from "@/data/mockData";
+import { getGoalsForUser, goals, Goal, users } from "@/data/mockData";
 import { useAuth } from "@/context/AuthContext";
 import { Checkbox } from "@/components/ui/checkbox";
+
+function getMockProxy(role: string, teamName: string | null) {
+  const byRoleAndTeam = users.find(u => u.role === role && u.teamName === teamName);
+  if (byRoleAndTeam) return byRoleAndTeam;
+  const byRole = users.find(u => u.role === role);
+  if (byRole) return byRole;
+  return users[0];
+}
 
 export default function AEDashboard() {
   const { currentUser } = useAuth();
   const [, forceUpdate] = useState(0);
-  const allGoals = getGoalsForUser(currentUser.id);
+
+  if (!currentUser) return null;
+
+  // For AE dashboard, find a mock employee to show demo goals
+  const mockProxy = getMockProxy('employee', currentUser.teamName);
+  const allGoals = getGoalsForUser(mockProxy.id);
   const activeGoals = allGoals.filter(g => g.status === 'active');
   const overdueGoals = allGoals.filter(g => g.status === 'overdue');
   const completedGoals = allGoals.filter(g => g.status === 'completed');
@@ -35,7 +48,6 @@ export default function AEDashboard() {
         <StatCard title="Completed" value={completedGoals.length} icon={CheckCircle2} variant="success" />
       </div>
 
-      {/* Active & Overdue */}
       {[...activeGoals, ...overdueGoals].length > 0 && (
         <div className="bg-card rounded-xl border border-border">
           <div className="p-5 border-b border-border">
@@ -68,7 +80,6 @@ export default function AEDashboard() {
                     <p className="text-xs text-muted-foreground whitespace-pre-line">{goal.gamePlan}</p>
                   </div>
                 )}
-                {/* Completion checkboxes */}
                 <div className="p-4 rounded-lg border border-border bg-muted/30">
                   <p className="text-sm font-semibold text-foreground mb-3">Successfully completed the target</p>
                   <div className="flex flex-col gap-3">
@@ -100,7 +111,6 @@ export default function AEDashboard() {
         </div>
       )}
 
-      {/* History */}
       {completedGoals.length > 0 && (
         <div className="bg-card rounded-xl border border-border">
           <div className="p-5 border-b border-border">

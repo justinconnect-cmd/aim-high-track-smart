@@ -24,12 +24,20 @@ function getRoleOptionsForUser(currentRole: UserRole) {
   return [];
 }
 
-function AddEmployeeDialog({ currentUser }: { currentUser: User }) {
+function getMockProxy(role: string, teamName: string | null) {
+  const byRoleAndTeam = users.find(u => u.role === role && u.teamName === teamName);
+  if (byRoleAndTeam) return byRoleAndTeam;
+  const byRole = users.find(u => u.role === role);
+  if (byRole) return byRole;
+  return users.find(u => u.role === 'top_level') || users[0];
+}
+
+function AddEmployeeDialog({ mockUser }: { mockUser: User }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [role, setRole] = useState<UserRole | ''>('');
   const [segment, setSegment] = useState<'11-50' | '51-100' | ''>('');
-  const availableRoles = getRoleOptionsForUser(currentUser.role);
+  const availableRoles = getRoleOptionsForUser(mockUser.role);
 
   const handleAdd = () => {
     if (!name.trim() || !role) {
@@ -42,9 +50,9 @@ function AddEmployeeDialog({ currentUser }: { currentUser: User }) {
       name: name.trim(),
       avatar: initials,
       role: role as UserRole,
-      managerId: currentUser.id,
+      managerId: mockUser.id,
       ...(role === 'employee' && segment ? { segment: segment as '11-50' | '51-100' } : {}),
-      ...(currentUser.teamName ? { teamName: currentUser.teamName } : {}),
+      ...(mockUser.teamName ? { teamName: mockUser.teamName } : {}),
     };
     users.push(newUser);
     toast.success(`${newUser.name} added as ${availableRoles.find(r => r.value === role)?.label}`);
@@ -112,18 +120,20 @@ function AddEmployeeDialog({ currentUser }: { currentUser: User }) {
 
 export default function EmployeeList() {
   const { currentUser } = useAuth();
+
+  if (!currentUser) return null;
+
+  const mockProxy = getMockProxy(currentUser.role, currentUser.teamName);
   const isGroupLead = currentUser.role === 'group_lead' || currentUser.role === 'top_level';
   const canAdd = ['top_level', 'group_lead', 'team_lead'].includes(currentUser.role);
 
-  // For group leads: drill-down from team leads → AEs
   const [selectedTeamLead, setSelectedTeamLead] = useState<User | null>(null);
 
-  const teamLeads = isGroupLead ? getTeamLeadsUnder(currentUser.id) : [];
+  const teamLeads = isGroupLead ? getTeamLeadsUnder(mockProxy.id) : [];
   const employees = isGroupLead
     ? (selectedTeamLead ? getDirectReports(selectedTeamLead.id) : [])
-    : getVisibleEmployees(currentUser.id);
+    : getVisibleEmployees(mockProxy.id);
 
-  // Group lead viewing teams
   if (isGroupLead && !selectedTeamLead) {
     return (
       <div className="space-y-6">
@@ -132,7 +142,7 @@ export default function EmployeeList() {
             <h1 className="text-3xl font-heading font-bold text-foreground">My Teams</h1>
             <p className="text-muted-foreground mt-1">Select a team lead to view their AEs</p>
           </div>
-          {canAdd && <AddEmployeeDialog currentUser={currentUser} />}
+          {canAdd && <AddEmployeeDialog mockUser={mockProxy} />}
         </motion.div>
 
         <div className="grid gap-3">
@@ -170,7 +180,6 @@ export default function EmployeeList() {
     );
   }
 
-  // Team lead view OR group lead drilled into a team
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
@@ -192,7 +201,7 @@ export default function EmployeeList() {
               : 'Click on an employee to view their profile'}
           </p>
         </div>
-        {canAdd && <AddEmployeeDialog currentUser={currentUser} />}
+        {canAdd && <AddEmployeeDialog mockUser={mockProxy} />}
       </motion.div>
 
       <div className="grid gap-3">

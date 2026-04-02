@@ -3,13 +3,16 @@ import connecteamLogo from "@/assets/connecteam-logo.png";
 import { LayoutDashboard, UserCircle, PlusCircle, Users, LogOut, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
-import { users } from "@/data/mockData";
 
 export default function AppSidebar() {
   const location = useLocation();
-  const { currentUser, setCurrentUserId, signOut } = useAuth();
+  const { currentUser, signOut } = useAuth();
+
+  if (!currentUser) return null;
+
   const isEmployee = currentUser.role === 'employee';
   const isGroupLead = currentUser.role === 'group_lead' || currentUser.role === 'top_level';
+  const isTopLevel = currentUser.role === 'top_level';
 
   const roleLabel = {
     top_level: 'Top Level',
@@ -17,8 +20,6 @@ export default function AppSidebar() {
     team_lead: 'Team Lead',
     employee: 'AE',
   }[currentUser.role];
-
-  const isTopLevel = currentUser.role === 'top_level';
 
   const navItems = isEmployee
     ? [
@@ -30,13 +31,6 @@ export default function AppSidebar() {
         { to: "/goals/new", icon: PlusCircle, label: "New Goal" },
         ...(isTopLevel ? [{ to: "/admin", icon: Shield, label: "Admin" }] : []),
       ];
-
-  const switchableUsers = [
-    { id: 'u1', label: 'Boneh (Top Level)' },
-    { id: 'g1', label: 'Sarah (Group Lead)' },
-    { id: 't1', label: 'Maya (Team Lead)' },
-    { id: 'e1', label: 'Tal (AE)' },
-  ];
 
   return (
     <aside className="hidden md:flex flex-col w-64 bg-sidebar text-sidebar-foreground min-h-screen">
@@ -69,19 +63,6 @@ export default function AppSidebar() {
           );
         })}
       </nav>
-
-      <div className="px-3 mb-2">
-        <label className="block text-xs text-sidebar-foreground/50 mb-1 px-1">Switch View</label>
-        <select
-          value={currentUser.id}
-          onChange={e => setCurrentUserId(e.target.value)}
-          className="w-full rounded-lg border border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground text-sm px-3 py-2 focus:outline-none"
-        >
-          {switchableUsers.map(u => (
-            <option key={u.id} value={u.id}>{u.label}</option>
-          ))}
-        </select>
-      </div>
 
       <div className="p-4 mx-3 mb-2 rounded-lg bg-sidebar-accent">
         <p className="text-xs text-sidebar-foreground/60">Logged in as</p>

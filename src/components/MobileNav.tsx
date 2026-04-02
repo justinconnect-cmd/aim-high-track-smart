@@ -5,7 +5,24 @@ import { useAuth } from "@/context/AuthContext";
 export default function MobileNav() {
   const location = useLocation();
   const { currentUser } = useAuth();
+
+  if (!currentUser) return null;
+
+  const isEmployee = currentUser.role === 'employee';
   const isGroupLead = currentUser.role === 'group_lead' || currentUser.role === 'top_level';
+
+  if (isEmployee) {
+    return (
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-card border-t border-border">
+        <div className="flex justify-around py-2">
+          <NavLink to="/" className={`flex flex-col items-center gap-0.5 px-3 py-1 text-xs font-medium transition-colors ${location.pathname === '/' ? 'text-accent' : 'text-muted-foreground'}`}>
+            <LayoutDashboard className="w-5 h-5" />
+            My Goals
+          </NavLink>
+        </div>
+      </nav>
+    );
+  }
 
   const navItems = [
     { to: "/", icon: LayoutDashboard, label: "Home" },

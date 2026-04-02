@@ -1,14 +1,26 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { getVisibleEmployees } from "@/data/mockData";
+import { getVisibleEmployees, users } from "@/data/mockData";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
+function getMockProxy(role: string, teamName: string | null) {
+  const byRoleAndTeam = users.find(u => u.role === role && u.teamName === teamName);
+  if (byRoleAndTeam) return byRoleAndTeam;
+  const byRole = users.find(u => u.role === role);
+  if (byRole) return byRole;
+  return users.find(u => u.role === 'top_level') || users[0];
+}
+
 export default function GoalEntry() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const employees = getVisibleEmployees(currentUser.id);
+
+  if (!currentUser) return null;
+
+  const mockProxy = getMockProxy(currentUser.role, currentUser.teamName);
+  const employees = getVisibleEmployees(mockProxy.id);
 
   const [form, setForm] = useState({
     assignedTo: '',
