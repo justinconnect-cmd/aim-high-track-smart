@@ -204,23 +204,23 @@ export default function AdminPanel() {
                       </Select>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          className="w-[120px] h-9"
-                          placeholder="No team"
-                          value={teamValue}
-                          onChange={(e) =>
-                            setEditingTeam((prev) => ({ ...prev, [user.user_id]: e.target.value }))
-                          }
-                          onBlur={() => {
-                            if (isEditing) handleTeamSave(user.user_id);
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" && isEditing) handleTeamSave(user.user_id);
-                          }}
-                          disabled={updating === user.user_id}
-                        />
-                      </div>
+                      <Select
+                        value={user.team_name ?? "__none__"}
+                        onValueChange={(val) => handleTeamChange(user.user_id, val === "__none__" ? null : val)}
+                        disabled={updating === user.user_id}
+                      >
+                        <SelectTrigger className="w-[160px]">
+                          <SelectValue placeholder="No team" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">No team</SelectItem>
+                          {teamLeadNames.map((name) => (
+                            <SelectItem key={name} value={name}>
+                              {name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                   </TableRow>
                 );
