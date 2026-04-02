@@ -19,8 +19,27 @@ Deno.serve(async (req) => {
       });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    
+    console.log("SUPABASE_URL present:", !!supabaseUrl);
+    console.log("SUPABASE_SERVICE_ROLE_KEY present:", !!serviceRoleKey);
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      // Try alternative env var names
+      const altUrl = Deno.env.get("SUPABASE_URL") || Deno.env.get("SB_URL");
+      const altKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SERVICE_ROLE_KEY");
+      console.log("Available env vars:", JSON.stringify(Object.keys(Deno.env.toObject()).filter(k => k.includes("SUPA") || k.includes("SERVICE") || k.includes("SB_"))));
+      
+      return new Response(JSON.stringify({ 
+        error: "Server configuration error - missing environment variables",
+        debug: { hasUrl: !!supabaseUrl, hasKey: !!serviceRoleKey }
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
     // Verify caller identity from JWT
@@ -33,7 +52,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check caller has permission (top_level, group_lead, or team_lead)
+    // Check caller has permission
     const { data: callerRole } = await adminClient
       .from("user_roles")
       .select("role")
@@ -57,7 +76,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create the auth user (triggers handle_new_user which creates profile + default role)
+    // Create auth user
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
       email,
       email_confirm: true,
@@ -73,20 +92,12 @@ Deno.serve(async (req) => {
 
     const userId = newUser.user.id;
 
-    // Update role if not default 'employee'
     if (role !== "employee") {
-      await adminClient
-        .from("user_roles")
-        .update({ role })
-        .eq("user_id", userId);
+      await adminClient.from("user_roles").update({ role }).eq("user_id", userId);
     }
 
-    // Update team_name if provided
     if (team_name) {
-      await adminClient
-        .from("profiles")
-        .update({ team_name })
-        .eq("user_id", userId);
+      await adminClient.from("profiles").update({ team_name }).eq("user_id", userId);
     }
 
     return new Response(JSON.stringify({ success: true, user_id: userId }), {
@@ -94,6 +105,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
+    console.error("Error:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
