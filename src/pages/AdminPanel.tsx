@@ -82,26 +82,27 @@ export default function AdminPanel() {
   const handleRoleChange = async (userId: string, roleRowId: string, newRole: AppRole) => {
     setUpdating(userId);
     
-    // Delete old role and insert new one (since we can't update via RLS easily)
-    const { error: deleteErr } = await supabase
-      .from("user_roles")
-      .delete()
-      .eq("id", roleRowId);
+    if (roleRowId) {
+      const { error } = await supabase
+        .from("user_roles")
+        .update({ role: newRole })
+        .eq("id", roleRowId);
 
-    if (deleteErr) {
-      toast.error("Failed to update role");
-      setUpdating(null);
-      return;
-    }
+      if (error) {
+        toast.error("Failed to update role");
+        setUpdating(null);
+        return;
+      }
+    } else {
+      const { error } = await supabase
+        .from("user_roles")
+        .insert({ user_id: userId, role: newRole });
 
-    const { error: insertErr } = await supabase
-      .from("user_roles")
-      .insert({ user_id: userId, role: newRole });
-
-    if (insertErr) {
-      toast.error("Failed to assign new role");
-      setUpdating(null);
-      return;
+      if (error) {
+        toast.error("Failed to assign role");
+        setUpdating(null);
+        return;
+      }
     }
 
     toast.success("Role updated successfully");
