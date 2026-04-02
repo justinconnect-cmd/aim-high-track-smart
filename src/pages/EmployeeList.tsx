@@ -208,7 +208,7 @@ export default function EmployeeList() {
               : 'Click on an employee to view their profile'}
           </p>
         </div>
-        {canAdd && <AddEmployeeDialog mockUser={mockProxy} />}
+        {canAdd && <AddEmployeeDialog currentUser={currentUser} />}
       </motion.div>
 
       <div className="grid gap-3">
