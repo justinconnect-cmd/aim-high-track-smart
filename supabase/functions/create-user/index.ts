@@ -11,7 +11,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Verify the caller is authenticated and has a lead/admin role
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -22,22 +21,19 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Client with caller's JWT to check their role
-    const callerClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: { user: caller } } = await callerClient.auth.getUser();
-    if (!caller) {
+    // Verify caller identity from JWT
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user: caller }, error: authErr } = await adminClient.auth.getUser(token);
+    if (authErr || !caller) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Check caller has permission (top_level, group_lead, or team_lead)
-    const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    // Check caller has permission
     const { data: callerRole } = await adminClient
       .from("user_roles")
       .select("role")
@@ -61,7 +57,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create the auth user (triggers handle_new_user which creates profile + default role)
+    // Create auth user (triggers handle_new_user for profile + default role)
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
       email,
       email_confirm: true,
@@ -77,20 +73,12 @@ Deno.serve(async (req) => {
 
     const userId = newUser.user.id;
 
-    // Update role if not default 'employee'
     if (role !== "employee") {
-      await adminClient
-        .from("user_roles")
-        .update({ role })
-        .eq("user_id", userId);
+      await adminClient.from("user_roles").update({ role }).eq("user_id", userId);
     }
 
-    // Update team_name if provided
     if (team_name) {
-      await adminClient
-        .from("profiles")
-        .update({ team_name })
-        .eq("user_id", userId);
+      await adminClient.from("profiles").update({ team_name }).eq("user_id", userId);
     }
 
     return new Response(JSON.stringify({ success: true, user_id: userId }), {
