@@ -37,7 +37,29 @@ export default function AdminPanel() {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
-  const [editingTeam, setEditingTeam] = useState<Record<string, string>>({});
+
+  // Derive team names from users with team_lead role
+  const teamLeadNames = users
+    .filter((u) => u.role === "team_lead" && u.name)
+    .map((u) => u.name as string);
+
+  const handleTeamChange = async (userId: string, teamName: string | null) => {
+    setUpdating(userId);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ team_name: teamName })
+      .eq("user_id", userId);
+
+    if (error) {
+      toast.error("Failed to update team");
+      setUpdating(null);
+      return;
+    }
+
+    toast.success("Team updated successfully");
+    await fetchUsers();
+    setUpdating(null);
+  };
 
   const fetchUsers = async () => {
     setLoading(true);
