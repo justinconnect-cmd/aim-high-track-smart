@@ -23,16 +23,17 @@ export default function EmployeeProfile() {
   const user = getUserById(id || '');
   const [, forceUpdate] = useState(0);
 
-  // Lead comment dialog state
   const [commentDialogGoal, setCommentDialogGoal] = useState<Goal | null>(null);
   const [leadComment, setLeadComment] = useState('');
   const [addGoalOpen, setAddGoalOpen] = useState(false);
   const [newGoal, setNewGoal] = useState({ title: '', description: '', gamePlan: '', deadline: '', category: '' });
 
+  if (!currentUser) return null;
+
   const activeGoals = getActiveGoals(id || '');
   const completedGoals = getCompletedGoals(id || '');
 
-  const isEmployee = currentUser.id === id;
+  const isEmployee = currentUser.role === 'employee';
   const isLead = currentUser.role === 'team_lead' || currentUser.role === 'group_lead' || currentUser.role === 'top_level';
 
   const handleEmployeeToggle = (goal: Goal) => {

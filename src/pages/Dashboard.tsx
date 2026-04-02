@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Users, Target, AlertTriangle, CheckCircle2 } from "lucide-react";
 import StatCard from "@/components/StatCard";
 import GoalStatusBadge from "@/components/GoalStatusBadge";
-import { getVisibleEmployees, goals, getUserById, getTeamLeadsUnder, type User, type Segment } from "@/data/mockData";
+import { getVisibleEmployees, goals, getUserById, getTeamLeadsUnder, users, type User, type Segment } from "@/data/mockData";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
@@ -154,18 +154,35 @@ function TeamDashboard({ teamLead, employees, isGroupLead, teamLeads }: { teamLe
   );
 }
 
+/** Find the best mock user to proxy demo data based on the real user's role */
+function getMockProxy(role: string, teamName: string | null) {
+  // Try to find a mock user with matching role and team
+  const byRoleAndTeam = users.find(u => u.role === role && u.teamName === teamName);
+  if (byRoleAndTeam) return byRoleAndTeam;
+  // Fallback: first mock user with matching role
+  const byRole = users.find(u => u.role === role);
+  if (byRole) return byRole;
+  // Ultimate fallback
+  return users.find(u => u.role === 'top_level') || users[0];
+}
+
 export default function Dashboard() {
   const { currentUser } = useAuth();
+
+  if (!currentUser) return null;
 
   if (currentUser.role === 'employee') {
     return <AEDashboard />;
   }
 
-  const isGroupLead = currentUser.role === 'group_lead' || currentUser.role === 'top_level';
-  const visibleEmployees = getVisibleEmployees(currentUser.id);
-  const teamLeads = isGroupLead ? getTeamLeadsUnder(currentUser.id) : [];
+  // Use a mock proxy for demo content (goals, employees)
+  const mockProxy = getMockProxy(currentUser.role, currentUser.teamName);
 
-  const roleLabel = isGroupLead ? 'Group Overview' : `Team ${currentUser.teamName} Overview`;
+  const isGroupLead = currentUser.role === 'group_lead' || currentUser.role === 'top_level';
+  const visibleEmployees = getVisibleEmployees(mockProxy.id);
+  const teamLeads = isGroupLead ? getTeamLeadsUnder(mockProxy.id) : [];
+
+  const roleLabel = isGroupLead ? 'Group Overview' : `Team ${currentUser.teamName || ''} Overview`;
 
   const teamData = teamLeads.map(tl => ({
     teamLead: tl,
