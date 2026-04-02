@@ -17,9 +17,9 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 function ProtectedLayout() {
-  const { session, isLoading } = useAuth();
+  const { session, isLoading, currentUser } = useAuth();
 
-  if (isLoading) {
+  if (isLoading || (session && !currentUser)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
