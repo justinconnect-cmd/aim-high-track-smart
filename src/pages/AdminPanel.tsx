@@ -5,7 +5,7 @@ import { Shield, UserCircle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+
 import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
@@ -37,7 +37,29 @@ export default function AdminPanel() {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
-  const [editingTeam, setEditingTeam] = useState<Record<string, string>>({});
+
+  // Derive team names from users with team_lead role
+  const teamLeadNames = users
+    .filter((u) => u.role === "team_lead" && u.name)
+    .map((u) => u.name as string);
+
+  const handleTeamChange = async (userId: string, teamName: string | null) => {
+    setUpdating(userId);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ team_name: teamName })
+      .eq("user_id", userId);
+
+    if (error) {
+      toast.error("Failed to update team");
+      setUpdating(null);
+      return;
+    }
+
+    toast.success("Team updated successfully");
+    await fetchUsers();
+    setUpdating(null);
+  };
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -112,31 +134,6 @@ export default function AdminPanel() {
     setUpdating(null);
   };
 
-  const handleTeamSave = async (userId: string) => {
-    const newTeam = editingTeam[userId];
-    if (newTeam === undefined) return;
-
-    setUpdating(userId);
-    const { error } = await supabase
-      .from("profiles")
-      .update({ team_name: newTeam || null })
-      .eq("user_id", userId);
-
-    if (error) {
-      toast.error("Failed to update team");
-      setUpdating(null);
-      return;
-    }
-
-    toast.success("Team updated successfully");
-    setEditingTeam((prev) => {
-      const next = { ...prev };
-      delete next[userId];
-      return next;
-    });
-    await fetchUsers();
-    setUpdating(null);
-  };
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -170,11 +167,9 @@ export default function AdminPanel() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => {
-                const isEditing = editingTeam[user.user_id] !== undefined;
-                const teamValue = isEditing ? editingTeam[user.user_id] : (user.team_name ?? "");
-                return (
+              {users.map((user) => (
                   <TableRow key={user.user_id}>
+
                     <TableCell className="font-medium">
                       {user.name || "—"}
                     </TableCell>
@@ -204,27 +199,26 @@ export default function AdminPanel() {
                       </Select>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          className="w-[120px] h-9"
-                          placeholder="No team"
-                          value={teamValue}
-                          onChange={(e) =>
-                            setEditingTeam((prev) => ({ ...prev, [user.user_id]: e.target.value }))
-                          }
-                          onBlur={() => {
-                            if (isEditing) handleTeamSave(user.user_id);
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" && isEditing) handleTeamSave(user.user_id);
-                          }}
-                          disabled={updating === user.user_id}
-                        />
-                      </div>
+                      <Select
+                        value={user.team_name ?? "__none__"}
+                        onValueChange={(val) => handleTeamChange(user.user_id, val === "__none__" ? null : val)}
+                        disabled={updating === user.user_id}
+                      >
+                        <SelectTrigger className="w-[160px]">
+                          <SelectValue placeholder="No team" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">No team</SelectItem>
+                          {teamLeadNames.map((name) => (
+                            <SelectItem key={name} value={name}>
+                              {name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                   </TableRow>
-                );
-              })}
+              ))}
             </TableBody>
           </Table>
         )}
