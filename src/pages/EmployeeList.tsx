@@ -121,13 +121,13 @@ function AddEmployeeDialog({ mockUser }: { mockUser: User }) {
 export default function EmployeeList() {
   const { currentUser } = useAuth();
 
+  const [selectedTeamLead, setSelectedTeamLead] = useState<User | null>(null);
+
   if (!currentUser) return null;
 
   const mockProxy = getMockProxy(currentUser.role, currentUser.teamName);
   const isGroupLead = currentUser.role === 'group_lead' || currentUser.role === 'top_level';
   const canAdd = ['top_level', 'group_lead', 'team_lead'].includes(currentUser.role);
-
-  const [selectedTeamLead, setSelectedTeamLead] = useState<User | null>(null);
 
   const teamLeads = isGroupLead ? getTeamLeadsUnder(mockProxy.id) : [];
   const employees = isGroupLead

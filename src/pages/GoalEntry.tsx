@@ -17,11 +17,6 @@ export default function GoalEntry() {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
-  if (!currentUser) return null;
-
-  const mockProxy = getMockProxy(currentUser.role, currentUser.teamName);
-  const employees = getVisibleEmployees(mockProxy.id);
-
   const [form, setForm] = useState({
     assignedTo: '',
     category: '',
@@ -30,6 +25,11 @@ export default function GoalEntry() {
     gamePlan: '',
     deadline: '',
   });
+
+  if (!currentUser) return null;
+
+  const mockProxy = getMockProxy(currentUser.role, currentUser.teamName);
+  const employees = getVisibleEmployees(mockProxy.id);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
