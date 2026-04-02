@@ -20,7 +20,7 @@ interface UserWithRole {
 }
 
 const ROLE_LABELS: Record<AppRole, string> = {
-  top_level: "Top Level",
+  top_level: "Admin",
   group_lead: "Group Lead",
   team_lead: "Team Lead",
   employee: "AE",
