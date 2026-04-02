@@ -20,7 +20,7 @@ interface UserWithRole {
 }
 
 const ROLE_LABELS: Record<AppRole, string> = {
-  top_level: "Top Level",
+  top_level: "Admin",
   group_lead: "Group Lead",
   team_lead: "Team Lead",
   employee: "AE",
@@ -194,7 +194,7 @@ export default function AdminPanel() {
                           <SelectItem value="employee">AE</SelectItem>
                           <SelectItem value="team_lead">Team Lead</SelectItem>
                           <SelectItem value="group_lead">Group Lead</SelectItem>
-                          <SelectItem value="top_level">Top Level</SelectItem>
+                          <SelectItem value="top_level">Admin</SelectItem>
                         </SelectContent>
                       </Select>
                     </TableCell>
