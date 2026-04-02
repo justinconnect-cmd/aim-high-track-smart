@@ -167,11 +167,9 @@ export default function AdminPanel() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => {
-                const isEditing = editingTeam[user.user_id] !== undefined;
-                const teamValue = isEditing ? editingTeam[user.user_id] : (user.team_name ?? "");
-                return (
+              {users.map((user) => (
                   <TableRow key={user.user_id}>
+
                     <TableCell className="font-medium">
                       {user.name || "—"}
                     </TableCell>
