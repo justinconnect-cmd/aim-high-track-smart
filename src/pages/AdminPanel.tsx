@@ -218,8 +218,7 @@ export default function AdminPanel() {
                       </Select>
                     </TableCell>
                   </TableRow>
-                );
-              })}
+              ))}
             </TableBody>
           </Table>
         )}
