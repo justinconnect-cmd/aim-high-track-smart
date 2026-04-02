@@ -7,7 +7,7 @@ import { users } from "@/data/mockData";
 
 export default function AppSidebar() {
   const location = useLocation();
-  const { currentUser, setCurrentUserId } = useAuth();
+  const { currentUser, setCurrentUserId, signOut } = useAuth();
   const isEmployee = currentUser.role === 'employee';
   const isGroupLead = currentUser.role === 'group_lead' || currentUser.role === 'top_level';
 
