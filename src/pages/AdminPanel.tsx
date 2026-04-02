@@ -134,31 +134,6 @@ export default function AdminPanel() {
     setUpdating(null);
   };
 
-  const handleTeamSave = async (userId: string) => {
-    const newTeam = editingTeam[userId];
-    if (newTeam === undefined) return;
-
-    setUpdating(userId);
-    const { error } = await supabase
-      .from("profiles")
-      .update({ team_name: newTeam || null })
-      .eq("user_id", userId);
-
-    if (error) {
-      toast.error("Failed to update team");
-      setUpdating(null);
-      return;
-    }
-
-    toast.success("Team updated successfully");
-    setEditingTeam((prev) => {
-      const next = { ...prev };
-      delete next[userId];
-      return next;
-    });
-    await fetchUsers();
-    setUpdating(null);
-  };
 
   return (
     <div className="max-w-5xl mx-auto">
